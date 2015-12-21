@@ -1,9 +1,9 @@
 <?php
 
-namespace Elixir\Mail;
+namespace Elixir\Mail\Swift;
 
 use Elixir\Mail\MailInterface;
-use Elixir\Mail\Message;
+use Elixir\Mail\Swift\Message;
 use Elixir\View\ViewInterface;
 use Swift_Mailer;
 use Swift_Message;
@@ -78,5 +78,13 @@ class Mail implements MailInterface
         }
         
         return $this->swift->send($message);
+    }
+    
+    /**
+     * @ignore
+     */
+    public function __call($method, $arguments) 
+    {
+        return call_user_func_array([$this->swift, $method], $arguments);
     }
 }
