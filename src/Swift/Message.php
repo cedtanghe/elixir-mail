@@ -35,6 +35,11 @@ class Message implements MessageInterface
      * @var string
      */
     protected $alternate;
+    
+    /**
+     * @var string
+     */
+    protected $template;
 
     /**
      * @param Swift_Message $message
@@ -95,6 +100,12 @@ class Message implements MessageInterface
         $contentType = isset($args[1]) ? $args[1] : 'text/html';
         $charset = isset($args[2]) ? $args[2] : 'utf-8';
         
+        if (null === $body && null !== $this->template)
+        {
+            $body = $this->template;
+            $this->template = null;
+        }
+        
         $this->message->setBody($body, $contentType, $charset);
         return $this;
     }
@@ -115,6 +126,12 @@ class Message implements MessageInterface
         $args = func_get_args();
         $contentType = isset($args[1]) ? $args[1] : 'text/plain';
         $charset = isset($args[2]) ? $args[2] : 'utf-8';
+        
+        if (null === $body && null !== $this->template)
+        {
+            $body = $this->template;
+            $this->template = null;
+        }
         
         $this->alternate = $body;
         $this->message->addPart($this->alternate, $contentType, $charset);
@@ -137,11 +154,18 @@ class Message implements MessageInterface
      */
     public function withTemplate($template, array $parameters = [])
     {
-        if (null === $this->view)
-        {
-            throw new \RuntimeException('View component is not defined.');
-        }
-        
+        $this->template = $this->render($template, $parameters);
+        return $this;
+    }
+    
+    /**
+     * @param string $template
+     * @param array $parameters
+     * @return string
+     * @throws \RuntimeException
+     */
+    public function render($template, array $parameters = [])
+    {
         return $this->view->render($template, $parameters);
     }
     
