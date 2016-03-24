@@ -14,7 +14,7 @@ use Swift_Message;
 class Mail implements MailInterface 
 {
     /**
-     * @var type 
+     * @var Swift_Mailer 
      */
     protected $swift;
     
