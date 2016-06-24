@@ -44,9 +44,9 @@ class Mailer implements MailInterface
     /**
      * @param ViewInterface $view
      */
-    public function setView(ViewInterface $view)
+    public function setView(ViewInterface $value)
     {
-        $this->view = $view;
+        $this->view = $value;
     }
     
     /**
@@ -63,6 +63,22 @@ class Mailer implements MailInterface
     public function getSwiftMailer()
     {
         return $this->swift;
+    }
+    
+    /**
+     * @param callable $value
+     */
+    public function setMessageFactory(callable $value)
+    {
+        $this->messageFactory = $value;
+    }
+    
+    /**
+     * @return callable
+     */
+    public function getMessageFactory()
+    {
+        return $this->messageFactory;
     }
 
     /**
