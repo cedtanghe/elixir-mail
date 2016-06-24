@@ -2,6 +2,8 @@
 
 namespace Elixir\Mail\Swift;
 
+use Elixir\Dispatcher\DispatcherTrait;
+use Elixir\Mail\MailEvent;
 use Elixir\Mail\MailInterface;
 use Elixir\Mail\Swift\Message;
 use Elixir\View\ViewInterface;
@@ -11,8 +13,10 @@ use Swift_Message;
 /**
  * @author Cédric Tanghe <ced.tanghe@gmail.com>
  */
-class Mail implements MailInterface 
+class Mailer implements MailInterface 
 {
+    use DispatcherTrait;
+    
     /**
      * @var Swift_Mailer 
      */
@@ -72,12 +76,18 @@ class Mail implements MailInterface
             $message = call_user_func_array($message, [$m]);
         }
         
-        if ($message instanceof Message)
+        $e = new MailEvent(MailEvent::PREPARE_MESSAGE, ['message' => $message]);
+        $this->dispatch($e);
+        
+        $message = $e->getMessage();
+        
+        if (!$message)
         {
-            $message = $message->getSwiftMessage();
+            return false;
         }
         
-        return $this->swift->send($message);
+        $this->dispatch(new MailEvent(MailEvent::SEND_EMAIL));
+        return $this->swift->send($message->getSwiftMessage());
     }
     
     /**
