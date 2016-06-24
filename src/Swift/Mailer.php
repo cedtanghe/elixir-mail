@@ -23,6 +23,11 @@ class Mailer implements MailInterface
     protected $swift;
     
     /**
+     * @var callable 
+     */
+    protected $messageFactory;
+    
+    /**
      * @var ViewInterface 
      */
     protected $view;
@@ -30,9 +35,10 @@ class Mailer implements MailInterface
     /**
      * @param Swift_Mailer $swift
      */
-    public function __construct(Swift_Mailer $swift)
+    public function __construct(Swift_Mailer $swift, callable $messageFactory = null)
     {
         $this->swift = $swift;
+        $this->messageFactory = $messageFactory;
     }
     
     /**
@@ -66,7 +72,7 @@ class Mailer implements MailInterface
     {
         if (is_callable($message))
         {
-            $m = new Message(Swift_Message::newInstance());
+            $m = new Message($this->messageFactory ? call_user_func($this->messageFactory) : Swift_Message::newInstance());
             
             if (null !== $this->view)
             {
