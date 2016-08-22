@@ -5,7 +5,6 @@ namespace Elixir\Mail\Swift;
 use Elixir\Dispatcher\DispatcherTrait;
 use Elixir\Mail\MailEvent;
 use Elixir\Mail\MailInterface;
-use Elixir\Mail\Swift\Message;
 use Elixir\View\ViewInterface;
 use Swift_Mailer;
 use Swift_Message;
@@ -13,25 +12,25 @@ use Swift_Message;
 /**
  * @author Cédric Tanghe <ced.tanghe@gmail.com>
  */
-class Mailer implements MailInterface 
+class Mailer implements MailInterface
 {
     use DispatcherTrait;
-    
+
     /**
-     * @var Swift_Mailer 
+     * @var Swift_Mailer
      */
     protected $swift;
-    
+
     /**
-     * @var callable 
+     * @var callable
      */
     protected $messageFactory;
-    
+
     /**
-     * @var ViewInterface 
+     * @var ViewInterface
      */
     protected $view;
-    
+
     /**
      * @param Swift_Mailer $swift
      */
@@ -40,7 +39,7 @@ class Mailer implements MailInterface
         $this->swift = $swift;
         $this->messageFactory = $messageFactory;
     }
-    
+
     /**
      * @param ViewInterface $view
      */
@@ -48,7 +47,7 @@ class Mailer implements MailInterface
     {
         $this->view = $value;
     }
-    
+
     /**
      * @return ViewInterface
      */
@@ -64,7 +63,7 @@ class Mailer implements MailInterface
     {
         return $this->swift;
     }
-    
+
     /**
      * @param callable $value
      */
@@ -72,7 +71,7 @@ class Mailer implements MailInterface
     {
         $this->messageFactory = $value;
     }
-    
+
     /**
      * @return callable
      */
@@ -86,36 +85,34 @@ class Mailer implements MailInterface
      */
     public function send($message)
     {
-        if (is_callable($message))
-        {
+        if (is_callable($message)) {
             $m = new Message($this->messageFactory ? call_user_func($this->messageFactory) : Swift_Message::newInstance());
-            
-            if (null !== $this->view)
-            {
+
+            if (null !== $this->view) {
                 $m->setView($this->view);
             }
-            
+
             $message = call_user_func_array($message, [$m]);
         }
-        
+
         $e = new MailEvent(MailEvent::PREPARE_MESSAGE, ['message' => $message]);
         $this->dispatch($e);
-        
+
         $message = $e->getMessage();
-        
-        if (!$message)
-        {
+
+        if (!$message) {
             return false;
         }
-        
+
         $this->dispatch(new MailEvent(MailEvent::SEND_EMAIL));
+
         return $this->swift->send($message->getSwiftMessage());
     }
-    
+
     /**
      * @ignore
      */
-    public function __call($method, $arguments) 
+    public function __call($method, $arguments)
     {
         return call_user_func_array([$this->swift, $method], $arguments);
     }
